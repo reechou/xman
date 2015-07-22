@@ -1,0 +1,44 @@
+
+2015/05/07 13:45:58 xman_main.go:32: [DEFAULT] [logtest]
+
+2015/05/07 13:51:27 xman_main.go:33: [DEFAULT] [logtest 111]
+
+2015/05/07 13:51:34 xman_main.go:33: [DEFAULT] [logtest 111]
+
+2015/05/07 13:51:34 xman_main.go:33: [DEFAULT] [logtest 111]
+
+2015/05/07 13:51:40 xman_main.go:33: [DEFAULT] [logtest 111]
+
+2015/05/07 13:52:46 xman_main.go:33: [DEFAULT] [logtest 111]
+
+2015/05/07 13:52:46 xman_main.go:34: [ERROR] [uin error]
+
+2015/05/07 14:04:05 xman_main.go:33: [DEFAULT][logtest 111]
+
+2015/05/07 14:04:05 xman_main.go:34: [ERROR][uin error]
+
+2015/05/07 14:04:29 xman_main.go:33: [DEFAULT][logtest 111]
+
+2015/05/07 14:04:29 xman_main.go:34: [ERROR][uin error]
+
+2015/05/07 14:05:38 xman_main.go:33: [DEFAULT][logtest 111 username: reezhou 111]
+
+2015/05/07 14:05:38 xman_main.go:34: [ERROR][uin error]
+
+2015/05/07 14:08:00 xman_main.go:33: [DEFAULT][logtest 111 username: reezhou 111]
+
+2015/05/07 14:08:00 xman_main.go:34: [ERROR][uin error]
+
+2015/05/07 14:31:09 xman_main.go:27: [DEFAULT][logtest 111 username: reezhou 111]
+
+2015/05/07 14:31:09 xman_main.go:28: [ERROR][uin error]
+
+2015/05/08 17:31:07 xman_main.go:27: [DEFAULT][logtest 111 username: reezhou 111]
+
+2015/05/08 17:31:07 xman_main.go:28: [ERROR][uin error]
+
+2015/05/08 17:32:11 xman_main.go:27: [DEFAULT][logtest 111 username: reezhou 111]
+
+2015/05/08 17:32:11 xman_main.go:28: [ERROR][uin error]
+
+2015/05/08 18:54:11 xman_main.go:32: [ERROR][uin error]
