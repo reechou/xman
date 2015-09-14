@@ -155,7 +155,7 @@ func consoleF(format string, a ...interface{}) {
 		}
 		file = short
 		formatTmp := file + ":" + strconv.Itoa(line) + format
-		log.Printf(formatTmp, a...)
+		log.Println(fmt.Sprintf(formatTmp, a...))
 	}
 }
 
