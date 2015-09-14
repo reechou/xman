@@ -83,6 +83,10 @@ func SetLogLevel(level int32) {
 	LogInfo.logLevel = level
 }
 
+func GetLogger() *log.Logger {
+	return LogInfo.logObj.lg
+}
+
 // uint for KB MB GB TB
 // file size = maxSize * uint
 func SetRollingFile(fileDir, fileName string, maxCount int32, maxSize int64, unit UNIT) {
