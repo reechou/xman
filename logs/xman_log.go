@@ -196,7 +196,7 @@ func Logf(logLevel int32, format string, a ...interface{}) {
 	if LogInfo.logLevel >= logLevel {
 		format = levels[logLevel] + format
 		LogInfo.logObj.lg.Output(2, fmt.Sprintf(format, a...))
-		consoleF(format, a)
+		consoleF(format, a...)
 	}
 }
 
