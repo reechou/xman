@@ -46,24 +46,24 @@ var levels = []string{
 }
 
 type LoggerInfo struct {
-	logLevel int32
-	maxFileSize int64
-	maxFileCount int32
-	dailyRolling bool
+	logLevel      int32
+	maxFileSize   int64
+	maxFileCount  int32
+	dailyRolling  bool
 	ifConsoleShow bool
-	RollingFile bool
-	logObj *LogFileInfo
+	RollingFile   bool
+	logObj        *LogFileInfo
 }
 
 type LogFileInfo struct {
-	dir string
-	filename string
+	dir        string
+	filename   string
 	fileSuffix int
-	isCover bool
-	fileDate *time.Time
-	mutex *sync.RWMutex
-	logfile *os.File
-	lg *log.Logger
+	isCover    bool
+	fileDate   *time.Time
+	mutex      *sync.RWMutex
+	logfile    *os.File
+	lg         *log.Logger
 }
 
 var LogInfo LoggerInfo
@@ -101,8 +101,8 @@ func SetRollingFile(fileDir, fileName string, maxCount int32, maxSize int64, uni
 		}
 	}
 	if !LogInfo.logObj.ifMustRename() {
-		LogInfo.logObj.logfile, _ = os.OpenFile(fileDir + "/" + fileName, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0666)
-		LogInfo.logObj.lg = log.New(LogInfo.logObj.logfile, "", log.Ldate | log.Ltime | log.Lshortfile)
+		LogInfo.logObj.logfile, _ = os.OpenFile(fileDir+"/"+fileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+		LogInfo.logObj.lg = log.New(LogInfo.logObj.logfile, "", log.Ldate|log.Ltime|log.Lshortfile)
 	} else {
 		LogInfo.logObj.rename()
 	}
@@ -115,10 +115,10 @@ func SetRollingDaily(fileDir, fileName string) {
 	t, _ := time.Parse(DATEFORMAT, time.Now().Format(DATEFORMAT))
 	LogInfo.logObj = &LogFileInfo{dir: fileDir, filename: fileName, fileDate: &t, isCover: false, mutex: new(sync.RWMutex)}
 	LogInfo.logObj.mutex.Lock()
-	defer  LogInfo.logObj.mutex.Unlock()
+	defer LogInfo.logObj.mutex.Unlock()
 	if !LogInfo.logObj.ifMustRename() {
-		LogInfo.logObj.logfile, _ = os.OpenFile(fileDir + "/" + fileName, os.O_RDWR | os.O_APPEND | os.O_CREATE, 0666)
-		LogInfo.logObj.lg = log.New(LogInfo.logObj.logfile, "", log.Ldate | log.Ltime | log.Lshortfile)
+		LogInfo.logObj.logfile, _ = os.OpenFile(fileDir+"/"+fileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+		LogInfo.logObj.lg = log.New(LogInfo.logObj.logfile, "", log.Ldate|log.Ltime|log.Lshortfile)
 	} else {
 		LogInfo.logObj.rename()
 	}
@@ -135,7 +135,23 @@ func console(s ...interface{}) {
 			}
 		}
 		file = short
-		log.Println(file + ":" + strconv.Itoa(line), s)
+		log.Println(file+":"+strconv.Itoa(line), s)
+	}
+}
+
+func consoleF(format string, a ...interface{}) {
+	if LogInfo.ifConsoleShow {
+		_, file, line, _ := runtime.Caller(2)
+		short := file
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
+				short = file[i+1:]
+				break
+			}
+		}
+		file = short
+		formatTmp := file + ":" + strconv.Itoa(line) + format
+		log.Printf(formatTmp, a...)
 	}
 }
 
@@ -176,7 +192,7 @@ func Logf(logLevel int32, format string, a ...interface{}) {
 	if LogInfo.logLevel >= logLevel {
 		format = levels[logLevel] + format
 		LogInfo.logObj.lg.Output(2, fmt.Sprintf(format, a...))
-//		console(levels[logLevel], format, a)
+		consoleF(format, a)
 	}
 }
 
@@ -188,7 +204,7 @@ func (logFile *LogFileInfo) ifMustRename() bool {
 		}
 	} else {
 		if LogInfo.maxFileCount > 1 {
-			if getFileSize(logFile.dir + "/" + logFile.filename) >= LogInfo.maxFileSize {
+			if getFileSize(logFile.dir+"/"+logFile.filename) >= LogInfo.maxFileSize {
 				return true
 			}
 		}
@@ -204,14 +220,14 @@ func (logFile *LogFileInfo) rename() {
 			if logFile.logfile != nil {
 				logFile.logfile.Close()
 			}
-			err := os.Rename(logFile.dir + "/" + logFile.filename, fn)
+			err := os.Rename(logFile.dir+"/"+logFile.filename, fn)
 			if err != nil {
 				logFile.lg.Println("rename error, ", err.Error())
 			}
 			t, _ := time.Parse(DATEFORMAT, time.Now().Format(DATEFORMAT))
 			logFile.fileDate = &t
 			logFile.logfile, _ = os.Create(logFile.dir + "/" + logFile.filename)
-			logFile.lg = log.New(LogInfo.logObj.logfile, "", log.Ldate | log.Ltime | log.Lshortfile)
+			logFile.lg = log.New(LogInfo.logObj.logfile, "", log.Ldate|log.Ltime|log.Lshortfile)
 		}
 	} else {
 		logFile.coverNextOne()
@@ -227,13 +243,13 @@ func (logFile *LogFileInfo) coverNextOne() {
 	if ifExistFile(newFileName) {
 		os.Remove(newFileName)
 	}
-	os.Rename(logFile.dir + "/" + logFile.filename, newFileName)
+	os.Rename(logFile.dir+"/"+logFile.filename, newFileName)
 	logFile.logfile, _ = os.Create(logFile.dir + "/" + logFile.filename)
-	logFile.lg = log.New(LogInfo.logObj.logfile, "", log.Ldate | log.Ltime | log.Lshortfile)
+	logFile.lg = log.New(LogInfo.logObj.logfile, "", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func (logFile *LogFileInfo) nextSuffix() int {
-	return int(logFile.fileSuffix % int(LogInfo.maxFileCount) + 1)
+	return int(logFile.fileSuffix%int(LogInfo.maxFileCount) + 1)
 }
 
 func getFileSize(file string) int64 {
@@ -254,7 +270,7 @@ func fileMonitor() {
 	timer := time.NewTicker(1 * time.Second)
 	for {
 		select {
-		case <- timer.C:
+		case <-timer.C:
 			fileCheck()
 		}
 	}
