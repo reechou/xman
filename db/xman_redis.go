@@ -21,10 +21,10 @@ var (
 )
 
 type RedisController struct {
-	p *redis.Pool
-	key string
+	p        *redis.Pool
+	key      string
 	conninfo string
-	dbNum int
+	dbNum    int
 }
 
 func NewRedisController() *RedisController {
@@ -42,7 +42,7 @@ func (rc *RedisController) InitRedis(key, conninfo string, dbNum int) error {
 	rc.conninfo = conninfo
 	rc.dbNum = dbNum
 	rc.p = &redis.Pool{
-		MaxIdle: 3,
+		MaxIdle:     3,
 		IdleTimeout: 180 * time.Second,
 		Dial: func() (c redis.Conn, err error) {
 			c, err = redis.Dial("tcp", rc.conninfo)
@@ -145,4 +145,3 @@ func (rc *RedisController) ClearAll() error {
 	_, err = rc.do("DEL", rc.key)
 	return err
 }
-

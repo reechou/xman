@@ -6,25 +6,25 @@
 package xmandb
 
 import (
-	"encoding/json"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"strconv"
 
-	_ "github.com/go-sql-driver/mysql"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
 	DefaultOpenConns = 200
 	DefaultIdleConns = 100
-	DefaultUser = "root"
+	DefaultUser      = "root"
 )
 
 var (
-	ErrMysqlNoHost = errors.New("Mysql has no host.")
+	ErrMysqlNoHost   = errors.New("Mysql has no host.")
 	ErrMysqlNoDBName = errors.New("Mysql has no dbname.")
-	ErrMysqlNotInit = errors.New("Mysql not init.")
+	ErrMysqlNotInit  = errors.New("Mysql not init.")
 )
 
 const (
@@ -34,7 +34,7 @@ const (
 )
 
 type MysqlController struct {
-	db *sql.DB
+	db           *sql.DB
 	maxOpenConns int
 	maxIdleConns int
 }
@@ -139,6 +139,7 @@ func (mc *MysqlController) FetchRow(sqlstr string, args ...interface{}) (*map[st
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	columns, err := rows.Columns()
 	if err != nil {
@@ -187,6 +188,7 @@ func (mc *MysqlController) FetchRows(sqlstr string, args ...interface{}) (*[]map
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	columns, err := rows.Columns()
 	if err != nil {
