@@ -7,9 +7,9 @@ package xman
 
 import (
 	"errors"
+	"io"
 	"net"
 	"sync/atomic"
-	"io"
 	"time"
 
 	. "logs"
@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	ErrStopped = errors.New("xman: TCPSession stopped")
+	ErrStopped      = errors.New("xman: TCPSession stopped")
 	ErrSendChanFull = errors.New("xman: send chan full")
 )
 
@@ -25,38 +25,38 @@ type ProtoUnpackHandler func(pkgBuf []byte, pkgChan chan interface{}) []byte
 type PackageHandler func(s *TCPSession, pkg interface{})
 
 type TCPServerHandlers struct {
-	UnpackHandler ProtoUnpackHandler
+	UnpackHandler  ProtoUnpackHandler
 	PackageHandler PackageHandler
 }
 
 type TCPSession struct {
-	closed int32
-	conn net.Conn
+	closed          int32
+	conn            net.Conn
 	stopSessionChan chan bool
-//	recvChan chan []byte
-	pkgChan chan interface{}
+	//	recvChan chan []byte
+	pkgChan  chan interface{}
 	sendChan chan []byte
-//	startSeq uint32
-//	maxSeq uint32
-//	nowSeq uint32
+	//	startSeq uint32
+	//	maxSeq uint32
+	//	nowSeq uint32
 	protoUnpackHandler ProtoUnpackHandler
-	packageHandler PackageHandler
+	packageHandler     PackageHandler
 
 	lastRecvUnixTime int64
-	tw *utils.TimingWheel
+	tw               *utils.TimingWheel
 }
 
 func NewSession(conn net.Conn, protoUnpackHandler ProtoUnpackHandler, packageHandler PackageHandler, sendChanSize int, tw *utils.TimingWheel) *TCPSession {
 	return &TCPSession{
-		closed: -1,
-		conn: conn,
-		stopSessionChan: make(chan bool),
-		pkgChan: make(chan interface{}, sendChanSize),
-		sendChan: make(chan []byte, sendChanSize),
+		closed:             -1,
+		conn:               conn,
+		stopSessionChan:    make(chan bool),
+		pkgChan:            make(chan interface{}, sendChanSize),
+		sendChan:           make(chan []byte, sendChanSize),
 		protoUnpackHandler: protoUnpackHandler,
-		lastRecvUnixTime: time.Now().Unix(),
-		packageHandler: packageHandler,
-		tw: tw,
+		lastRecvUnixTime:   time.Now().Unix(),
+		packageHandler:     packageHandler,
+		tw:                 tw,
 	}
 }
 
@@ -106,36 +106,36 @@ func (s *TCPSession) sendLoop() {
 	var sendbuf []byte
 	for {
 		select {
-		case sendbuf = <- s.sendChan:
+		case sendbuf = <-s.sendChan:
 			_, err := s.conn.Write(sendbuf)
 			if err != nil {
 				Log(LOG_ERROR, "tcp connection write error.", err)
 				return
 			}
-		case <- s.tw.After(sessionCheck * time.Second):
+		case <-s.tw.After(sessionCheck * time.Second):
 			nowTime := time.Now().Unix()
-			if nowTime - s.lastRecvUnixTime > sessionTimeout {
+			if nowTime-s.lastRecvUnixTime > sessionTimeout {
 				Log(LOG_ERROR, "sessionTimeout, close TCPSession.")
 				return
 			}
-		case <- s.stopSessionChan:
+		case <-s.stopSessionChan:
 			return
 		}
 	}
 }
 
 func (s *TCPSession) pkgChanLoop() {
-//	for pkg := range s.pkgChan {
-//		seq := s.nowSeq
-//		s.nowSeq = (s.nowSeq + 1) % s.maxSeq + s.startSeq
-//		go s.packageHandler(s, pkg, 0)
-//	}
+	//	for pkg := range s.pkgChan {
+	//		seq := s.nowSeq
+	//		s.nowSeq = (s.nowSeq + 1) % s.maxSeq + s.startSeq
+	//		go s.packageHandler(s, pkg, 0)
+	//	}
 
 	for {
 		select {
 		case pkg := <-s.pkgChan:
 			go s.packageHandler(s, pkg)
-		case <- s.stopSessionChan:
+		case <-s.stopSessionChan:
 			Log(LOG_DEBUG, "get msg of close stopChan.")
 			return
 		}
@@ -145,7 +145,7 @@ func (s *TCPSession) pkgChanLoop() {
 func (s *TCPSession) AsyncSend(packageBuf []byte) error {
 	select {
 	case s.sendChan <- packageBuf:
-	case <- s.stopSessionChan:
+	case <-s.stopSessionChan:
 		return ErrStopped
 	default:
 		return ErrSendChanFull

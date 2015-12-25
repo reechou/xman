@@ -9,8 +9,8 @@ package utils
 import (
 	"fmt"
 	"os"
-	"syscall"
 	"runtime"
+	"syscall"
 )
 
 func Daemonize(nochdir, noclose int) int {

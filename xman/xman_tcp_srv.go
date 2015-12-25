@@ -6,9 +6,9 @@
 package xman
 
 import (
+	"errors"
 	"net"
 	"time"
-	"errors"
 
 	. "logs"
 	"utils"
@@ -19,11 +19,11 @@ var (
 )
 
 type TCPServer struct {
-	listener net.Listener
+	listener     net.Listener
 	sendChanSize int
-//	nowSeq uint32
+	//	nowSeq uint32
 	protoUnpackHandler ProtoUnpackHandler
-	packageHandler PackageHandler
+	packageHandler     PackageHandler
 
 	tw *utils.TimingWheel
 }
@@ -38,12 +38,12 @@ func RegisterTCPServer(network, addr string, protoUnpackHandler ProtoUnpackHandl
 
 func NewTCPServer(listener net.Listener, protoUnpackHandler ProtoUnpackHandler, packageHandler PackageHandler, sendChanSize int) *TCPServer {
 	return &TCPServer{
-		listener: listener,
+		listener:     listener,
 		sendChanSize: sendChanSize,
-//		nowSeq: 0,
+		//		nowSeq: 0,
 		protoUnpackHandler: protoUnpackHandler,
-		packageHandler: packageHandler,
-		tw: utils.NewTimingWheel(1 * time.Second, 3600),
+		packageHandler:     packageHandler,
+		tw:                 utils.NewTimingWheel(1*time.Second, 3600),
 	}
 }
 
@@ -78,7 +78,7 @@ func (s *TCPServer) AcceptLoop() error {
 			}
 		}
 		session := NewSession(conn, s.protoUnpackHandler, s.packageHandler, s.sendChanSize, s.tw)
-//		s.nowSeq = (s.nowSeq + maxSessionSeq) % maxUINT32
+		//		s.nowSeq = (s.nowSeq + maxSessionSeq) % maxUINT32
 		tcpConn := session.RawConn().(*net.TCPConn)
 		tcpConn.SetNoDelay(true)
 		tcpConn.SetReadBuffer(tcpReadBufLen)

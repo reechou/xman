@@ -23,19 +23,19 @@ type UDPSrvUnpackHandler func(pkgBuf []byte) (interface{}, error)
 type UDPSrvPackageHandler func(session *UDPSession, pkg interface{})
 
 type UDPServerHandlers struct {
-	UnpackHandler UDPSrvUnpackHandler
+	UnpackHandler  UDPSrvUnpackHandler
 	PackageHandler UDPSrvPackageHandler
 }
 
 type UDPServer struct {
-	addr string
-	conn *net.UDPConn
-	unpackHandler UDPSrvUnpackHandler
+	addr           string
+	conn           *net.UDPConn
+	unpackHandler  UDPSrvUnpackHandler
 	packageHandler UDPSrvPackageHandler
 }
 
 type UDPSession struct {
-	udpServer *UDPServer
+	udpServer  *UDPServer
 	remoteAddr *net.UDPAddr
 }
 

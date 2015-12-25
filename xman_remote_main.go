@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"config"
+	"demo"
 	. "logs"
 	. "xman"
-	"demo"
 )
 
 const (
@@ -37,15 +37,15 @@ type SrvProcessLogic struct {
 func (logic *SrvProcessLogic) GoProcessLogic(msg []byte, seq uint32) {
 	Log(LOG_DEBUG, "in GoProcessLogic. req:", string(msg))
 	//	rspChan := make(chan []byte, 1)
-//	reqChan := GetRemoteSrvChan(TEST_SRV)
-//	reqChan <- &Request{false, seq, []byte(strconv.Itoa(int(seq))), rspChan}
-//	var rsp []byte
-//	ret := SelectChan(&rsp, rspChan, 2, reqChan, seq)
-//	if ret != RET_OK {
-//		SendToClientUDP(UDPTESTSRV, []byte("wait for rsp timeout."), seq)
-//		return
-//	}
-//	SendToClientUDP(UDPTESTSRV, msg, seq)
+	//	reqChan := GetRemoteSrvChan(TEST_SRV)
+	//	reqChan <- &Request{false, seq, []byte(strconv.Itoa(int(seq))), rspChan}
+	//	var rsp []byte
+	//	ret := SelectChan(&rsp, rspChan, 2, reqChan, seq)
+	//	if ret != RET_OK {
+	//		SendToClientUDP(UDPTESTSRV, []byte("wait for rsp timeout."), seq)
+	//		return
+	//	}
+	//	SendToClientUDP(UDPTESTSRV, msg, seq)
 }
 
 func RemoteTCPLogicHandler(s *TCPSession, pkg interface{}) {
@@ -70,16 +70,16 @@ func main() {
 	fmt.Println(section.ValueOf("host"))
 
 	SetConsoleShow(true)
-//	SetRollingDaily("/Users/reezhou/Desktop/xman/src/logs", "test.log")
+	//	SetRollingDaily("/Users/reezhou/Desktop/xman/src/logs", "test.log")
 	SetRollingFile("/Users/reezhou/Desktop/xman/src/logs", "rolling.log", 10, 50, MB)
 	SetLogLevel(LOG_DEBUG)
-//	Log(LOG_ERROR, "uin error")
+	//	Log(LOG_ERROR, "uin error")
 
 	// RegisterUDPServer maybe need before RegisterUDPConn
 	// Prevent port is occupied
-//	RegisterUDPServer(UDPTESTSRV, ":6001")
+	//	RegisterUDPServer(UDPTESTSRV, ":6001")
 	// Run server loop
-//	RunUDPServer(UDPTESTSRV, &SrvProcessLogic{})
+	//	RunUDPServer(UDPTESTSRV, &SrvProcessLogic{})
 
 	// TCP Server
 	tcpServer, err := RegisterTCPServer("tcp", ":7001", xmandemo.UnpackTCP, RemoteTCPLogicHandler, MaxReqChanLen)

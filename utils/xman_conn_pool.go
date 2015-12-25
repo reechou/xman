@@ -12,11 +12,11 @@ import (
 var nowFunc = time.Now
 
 type ConnPool struct {
-	Dial func() (interface{}, error)
-	MaxIdle int
+	Dial      func() (interface{}, error)
+	MaxIdle   int
 	MaxActive int
-	closed int
-	active int
+	closed    int
+	active    int
 
 	idle chan interface{}
 }
@@ -43,13 +43,13 @@ func (cp *ConnPool) Get() interface{} {
 		cp.InitPool()
 	}
 
-	ic := <- cp.idle
+	ic := <-cp.idle
 	connCtrl := ic.(idleConn).c
 	defer cp.Release(connCtrl)
 
 	return connCtrl
 }
 
-func (cp *ConnPool) Release (conn interface{}) {
-	cp.idle <-idleConn{t: nowFunc(), c: conn}
+func (cp *ConnPool) Release(conn interface{}) {
+	cp.idle <- idleConn{t: nowFunc(), c: conn}
 }

@@ -6,56 +6,56 @@
 package xman
 
 import (
-	"strconv"
 	"errors"
 	"fmt"
-	"sync"
-	"net/http"
 	"io"
+	"net/http"
+	"strconv"
+	"sync"
 
 	"config"
 	. "logs"
 )
 
 var (
-	ErrNoServer = errors.New("No Server in config.")
-	ErrSrvSection = errors.New("Server section error.")
-	ErrSrvStart = errors.New("Server start error.")
-	ErrMapNotFound = errors.New("Map not found.")
+	ErrNoServer      = errors.New("No Server in config.")
+	ErrSrvSection    = errors.New("Server section error.")
+	ErrSrvStart      = errors.New("Server start error.")
+	ErrMapNotFound   = errors.New("Map not found.")
 	ErrUnknowNetwork = errors.New("Unknow network.")
 )
 
 type ReloadHandler func(config *xmanconfig.Configuration)
 
 type MapVal struct {
-	src interface{}
+	src     interface{}
 	srcType int32
 }
 
 type XMANGlobalConfig struct {
-	srvNum int
+	srvNum  int
 	connNum int
-	srvMap map[string]*MapVal
+	srvMap  map[string]*MapVal
 	connMap map[string]*MapVal
 
-	httpAddr string
+	httpAddr      string
 	reloadHandler ReloadHandler
 
 	config *xmanconfig.Configuration
 }
 
 type ServerInfo struct {
-	network string
-	address string
-	maxReq int
+	network   string
+	address   string
+	maxReq    int
 	connProxy string
 }
 
 type ConnInfo struct {
 	network string
 	address string
-	maxReq int
-	CMD int32
+	maxReq  int
+	CMD     int32
 }
 
 var XMANConfig XMANGlobalConfig
@@ -124,7 +124,7 @@ func InitFromConfig(config *xmanconfig.Configuration) error {
 				return ErrSrvStart
 			}
 			mapval := &MapVal{
-				src: tcpServer,
+				src:     tcpServer,
 				srcType: TCP,
 			}
 			XMANConfig.srvMap[srvSectionStr] = mapval
@@ -135,7 +135,7 @@ func InitFromConfig(config *xmanconfig.Configuration) error {
 				return ErrSrvStart
 			}
 			mapval := &MapVal{
-				src: udpServer,
+				src:     udpServer,
 				srcType: UDP,
 			}
 			XMANConfig.srvMap[srvSectionStr] = mapval
@@ -160,7 +160,7 @@ func InitFromConfig(config *xmanconfig.Configuration) error {
 		if connInfo.network == "tcp" {
 			tcpConn := RegisterTCPConn(connInfo.CMD, connInfo.network, connInfo.address, connInfo.maxReq, nil, nil)
 			mapval := &MapVal{
-				src: tcpConn,
+				src:     tcpConn,
 				srcType: TCP,
 			}
 			XMANConfig.connMap[connSectionStr] = mapval

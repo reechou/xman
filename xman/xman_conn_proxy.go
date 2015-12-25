@@ -6,51 +6,51 @@
 package xman
 
 import (
-	"net"
-	"os"
-	"time"
 	"errors"
 	"io"
-	"sync/atomic"
+	"net"
+	"os"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	. "logs"
 )
 
 var (
-	ErrNotFountRemoteSrv = errors.New("Remote SRV not found.")
-	ErrRemoteSrvTimeout = errors.New("Remote SRV timeout.")
+	ErrNotFountRemoteSrv  = errors.New("Remote SRV not found.")
+	ErrRemoteSrvTimeout   = errors.New("Remote SRV timeout.")
 	ErrRemoteSrvUnConnect = errors.New("Remote SRV not connected.")
 	ErrConnHandlerNotInit = errors.New("Conn Handlers not init.")
-	ErrTCPConnPoolGet = errors.New("TCP Conn Pool has no alive connMgr.")
+	ErrTCPConnPoolGet     = errors.New("TCP Conn Pool has no alive connMgr.")
 )
 
 const (
-	SRV_STATUS_OK = 1
+	SRV_STATUS_OK        = 1
 	SRV_STATUS_RECONNECT = 2
 )
 
-type Request struct  {
-	SrvTag int32
+type Request struct {
+	SrvTag   int32
 	IsCancel bool
-	ReqSeq uint32
-	ReqPkg []byte
-	RspChan chan interface{}
+	ReqSeq   uint32
+	ReqPkg   []byte
+	RspChan  chan interface{}
 }
 
 type SrvInfo struct {
-	srvType int32
-	srvStatus int32
-	packHandler ConnPackHandler
+	srvType      int32
+	srvStatus    int32
+	packHandler  ConnPackHandler
 	remoteSrvSeq uint32
-	connMgr interface{}
+	connMgr      interface{}
 }
 
 type RemoteSrvInfo struct {
 	sync.Mutex
-	srvIdx int
+	srvIdx    int
 	allSrvNum int
-	srvInfos [maxRemoteSrvIP]*SrvInfo
+	srvInfos  [maxRemoteSrvIP]*SrvInfo
 }
 
 type ConnPackHandler func(protoPkg interface{}, seq uint32) []byte
@@ -75,9 +75,9 @@ func RequestToRemote(srvTag int32, req interface{}, timeout time.Duration) (inte
 	reqBuf := remoteSrv.packHandler(req, newSeq)
 	reqPkg := &Request{
 		IsCancel: false,
-		ReqSeq: newSeq,
-		ReqPkg: reqBuf,
-		RspChan: make(chan interface{}, 1),
+		ReqSeq:   newSeq,
+		ReqPkg:   reqBuf,
+		RspChan:  make(chan interface{}, 1),
 	}
 	var valChan chan *Request
 	if remoteSrv.srvType == UDP {
@@ -88,7 +88,7 @@ func RequestToRemote(srvTag int32, req interface{}, timeout time.Duration) (inte
 	valChan <- reqPkg
 
 	select {
-	case rspPkg := <- reqPkg.RspChan:
+	case rspPkg := <-reqPkg.RspChan:
 		return rspPkg, nil
 	case <-time.After(timeout * time.Second):
 		Log(LOG_ERROR, "seq:", newSeq, "Remote srv timeout")
@@ -129,7 +129,7 @@ func chooseRemoteSrv(srvTag int32) (*SrvInfo, error) {
 
 func checkTcpReconnect(tcpMgr *TCPConnMgr) bool {
 	nowTime := time.Now().Unix()
-	if nowTime - tcpMgr.closeConnTime > tcpConnCheckReconnect {
+	if nowTime-tcpMgr.closeConnTime > tcpConnCheckReconnect {
 		return tcpMgr.tcpConnReconnect()
 	}
 	return false
@@ -143,28 +143,28 @@ func addSrvIdx(remoteSrvList *RemoteSrvInfo) {
 
 // ------ UDP Conn ------
 type UDPConnMgr struct {
-	conn *net.UDPConn
-	reqChan chan *Request
-	sendChan chan []byte
-	recvChan chan []byte
-	reqMap map[uint32]*Request
+	conn             *net.UDPConn
+	reqChan          chan *Request
+	sendChan         chan []byte
+	recvChan         chan []byte
+	reqMap           map[uint32]*Request
 	udpUnpackHandler UDPConnUnpackHandler
-	srvInfo *SrvInfo
+	srvInfo          *SrvInfo
 }
 
 type UDPConnHandlers struct {
-	PackHandler ConnPackHandler
+	PackHandler   ConnPackHandler
 	UnpackHandler UDPConnUnpackHandler
 }
 
 func RegisterUDPConn(srvTag int32, network, addr string, reqMaxSize int, udpPackHandler ConnPackHandler, udpUnpackHandler UDPConnUnpackHandler) {
-//	if udpUnpackHandler == nil {
-//		panic("xman_conn_proxy: RegisterUDPConn srvHandler is nil")
-//	}
+	//	if udpUnpackHandler == nil {
+	//		panic("xman_conn_proxy: RegisterUDPConn srvHandler is nil")
+	//	}
 	srvInfo := &SrvInfo{
-		srvType: UDP,
-		srvStatus: SRV_STATUS_OK,
-		packHandler: udpPackHandler,
+		srvType:      UDP,
+		srvStatus:    SRV_STATUS_OK,
+		packHandler:  udpPackHandler,
 		remoteSrvSeq: 0,
 	}
 	if remoteSrvList, ok := RemoteSrvChanList[srvTag]; !ok {
@@ -203,11 +203,11 @@ func UDPConnHandler(reqChan chan *Request, network, addr string, reqMaxSize int,
 	}
 
 	return &UDPConnMgr{
-		conn: conn,
-		reqChan: reqChan,
-		sendChan: make(chan []byte, reqMaxSize),
-		recvChan: make(chan []byte, reqMaxSize),
-		reqMap: make(map[uint32]*Request),
+		conn:             conn,
+		reqChan:          reqChan,
+		sendChan:         make(chan []byte, reqMaxSize),
+		recvChan:         make(chan []byte, reqMaxSize),
+		reqMap:           make(map[uint32]*Request),
 		udpUnpackHandler: udpUnpackHandler,
 	}
 }
@@ -281,35 +281,35 @@ func (udpMgr *UDPConnMgr) udpRecvHandler() {
 
 // ------ TCP Conn ------
 type TCPConnMgr struct {
-	closed int32
-	srvStatus int32
-	network string
-	addr string
-	conn *net.TCPConn
-	pauseConn chan bool
-	reqChan chan *Request
-	sendChan chan []byte
-	recvChan chan map[uint32]interface{}
-	reqMap map[uint32]*Request
+	closed           int32
+	srvStatus        int32
+	network          string
+	addr             string
+	conn             *net.TCPConn
+	pauseConn        chan bool
+	reqChan          chan *Request
+	sendChan         chan []byte
+	recvChan         chan map[uint32]interface{}
+	reqMap           map[uint32]*Request
 	tcpUnpackHandler TCPConnUnpackHandler
-	srvInfo *SrvInfo
-	reconnectTicker *time.Ticker
-	closeConnTime int64
+	srvInfo          *SrvInfo
+	reconnectTicker  *time.Ticker
+	closeConnTime    int64
 }
 
 type TCPConnHandlers struct {
-	PackHandler ConnPackHandler
+	PackHandler   ConnPackHandler
 	UnpackHandler TCPConnUnpackHandler
 }
 
 func RegisterTCPConn(srvTag int32, network, addr string, reqMaxSize int, tcpPackHandler ConnPackHandler, tcpUnpackHandler TCPConnUnpackHandler) *TCPConnMgr {
-//	if tcpUnpackHandler == nil {
-//		panic("xman_conn_proxy: register srvHandler is nil")
-//	}
+	//	if tcpUnpackHandler == nil {
+	//		panic("xman_conn_proxy: register srvHandler is nil")
+	//	}
 	srvInfo := &SrvInfo{
-		srvType: TCP,
-		srvStatus: SRV_STATUS_OK,
-		packHandler: tcpPackHandler,
+		srvType:      TCP,
+		srvStatus:    SRV_STATUS_OK,
+		packHandler:  tcpPackHandler,
 		remoteSrvSeq: 0,
 	}
 	if remoteSrvList, ok := RemoteSrvChanList[srvTag]; !ok {
@@ -343,7 +343,6 @@ func TCPConnHandler(reqChan chan *Request, network, addr string, reqMaxSize int,
 		Log(LOG_ERROR, "tcp_conn: net.ResolveTCPAddr failed.", err)
 		os.Exit(1)
 	}
-
 	conn, err := net.DialTCP(network, nil, tcpAddr)
 	if err != nil {
 		Log(LOG_ERROR, "tcp_conn: net.DialTCP failed.", err)
@@ -351,16 +350,16 @@ func TCPConnHandler(reqChan chan *Request, network, addr string, reqMaxSize int,
 	}
 
 	return &TCPConnMgr{
-		closed: -1,
-		srvStatus: SRV_STATUS_OK,
-		network: network,
-		addr: addr,
-		conn: conn,
-		pauseConn: make(chan bool),
-		reqChan: reqChan,
-		sendChan: make(chan []byte, reqMaxSize),
-		recvChan: make(chan map[uint32]interface{}, reqMaxSize),
-		reqMap: make(map[uint32]*Request),
+		closed:           -1,
+		srvStatus:        SRV_STATUS_OK,
+		network:          network,
+		addr:             addr,
+		conn:             conn,
+		pauseConn:        make(chan bool),
+		reqChan:          reqChan,
+		sendChan:         make(chan []byte, reqMaxSize),
+		recvChan:         make(chan map[uint32]interface{}, reqMaxSize),
+		reqMap:           make(map[uint32]*Request),
 		tcpUnpackHandler: tcpUnpackHandler,
 	}
 }
@@ -378,7 +377,7 @@ func (tcpMgr *TCPConnMgr) SetUnpackHandler(tcpUnpackHandler TCPConnUnpackHandler
 }
 
 func (tcpMgr *TCPConnMgr) tcpConnStart() {
-//	defer tcpMgr.conn.Close()
+	//	defer tcpMgr.conn.Close()
 
 	tcpMgr.tcpConnSendAndRecv()
 
@@ -409,13 +408,13 @@ func (tcpMgr *TCPConnMgr) tcpConnStart() {
 func (tcpMgr *TCPConnMgr) tcpSendHandler() {
 	defer tcpMgr.tcpConnClose()
 
-//	for data := range tcpMgr.sendChan {
-//		wlen, err := tcpMgr.conn.Write(data)
-//		if err != nil || wlen != len(data) {
-//			catchError("tcpSendHandler: conn.Write failed.", err)
-//			continue
-//		}
-//	}
+	//	for data := range tcpMgr.sendChan {
+	//		wlen, err := tcpMgr.conn.Write(data)
+	//		if err != nil || wlen != len(data) {
+	//			catchError("tcpSendHandler: conn.Write failed.", err)
+	//			continue
+	//		}
+	//	}
 
 	for {
 		select {
@@ -462,7 +461,7 @@ func (tcpMgr *TCPConnMgr) tcpConnClose() {
 	if atomic.CompareAndSwapInt32(&tcpMgr.closed, 0, -1) {
 		tcpMgr.conn.Close()
 		close(tcpMgr.pauseConn)
-//		tcpMgr.srvInfo.srvStatus = SRV_STATUS_RECONNECT
+		//		tcpMgr.srvInfo.srvStatus = SRV_STATUS_RECONNECT
 		tcpMgr.srvStatus = SRV_STATUS_RECONNECT
 		tcpMgr.closeConnTime = time.Now().Unix()
 	}
@@ -521,7 +520,7 @@ func (tcpMgr *TCPConnMgr) tcpConnPause() {
 // ------ TCP Conn Pool ------
 type TCPConnPool struct {
 	maxIdle int
-	conns chan *TCPConnMgr
+	conns   chan *TCPConnMgr
 	srvInfo *SrvInfo
 }
 
